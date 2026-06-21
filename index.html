@@ -5,35 +5,31 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Finanz App</title>
 
-manifest.json
-
 <style>
 body {
   margin:0;
-  font-family:Arial;
+  font-family:system-ui;
   background:linear-gradient(135deg,#f5f0e6,#e8f0e6,#e5edf5);
 }
 
 .container {
+  max-width:1000px;
+  margin:auto;
   padding:20px;
 }
 
-.header {
-  display:grid;
-  grid-template-columns: repeat(3,1fr);
+.dashboard {
+  display:flex;
   gap:10px;
-  margin-bottom:15px;
+  flex-wrap:wrap;
 }
 
 .card {
+  flex:1;
+  min-width:120px;
   background:white;
   padding:15px;
   border-radius:15px;
-  box-shadow:0 5px 15px rgba(0,0,0,0.08);
-}
-
-.input card {
-  margin-bottom:15px;
 }
 
 textarea {
@@ -43,17 +39,13 @@ textarea {
 }
 
 button {
+  width:100%;
+  padding:10px;
+  margin-top:10px;
   background:#6b8e23;
   color:white;
-  padding:10px;
   border:none;
   border-radius:10px;
-  margin-top:10px;
-}
-
-.value {
-  font-size:20px;
-  font-weight:bold;
 }
 </style>
 </head>
@@ -64,77 +56,62 @@ button {
 
 <h2>📱 Finanz App</h2>
 
-<div class="header">
-  <div class="card">Einnahmen<div id="income" class="value"></div></div>
-  <div class="card">Fixkosten<div id="fixed" class="value"></div></div>
-  <div class="card">Ausgaben<div id="expenses" class="value"></div></div>
+<div class="dashboard">
+  <div class="card">Einnahmen<div id="income"></div></div>
+  <div class="card">Fixkosten<div id="fixed"></div></div>
+  <div class="card">Ausgaben<div id="expenses"></div></div>
 </div>
 
-<div class="card">
-<textarea id="input" placeholder="z.B. Ich habe 20€ für Netflix bezahlt oder Recebi salário 3000"></textarea>
-<button onclick="add()">🤖 Analysieren</button>
-</div>
+<textarea id="input"></textarea>
+<button onclick="add()">Speichern</button>
 
-<div class="card">
 <pre id="output"></pre>
-</div>
 
 </div>
 
 <script>
-
-let data = JSON.parse(localStorage.getItem('data')) || {
-  income:[],
-  fixed:[],
-  expenses:[]
+let data = JSON.parse(localStorage.getItem("data")) || {
+ income:[],
+ fixed:[],
+ expenses:[]
 };
 
-function parse(text){
-  text=text.toLowerCase();
+function parse(t){
+ t=t.toLowerCase();
+ let val=(t.match(/\d+/)||[0])[0];
 
-  let amount = (text.match(/\\d+/) || [0])[0];
-  amount = Number(amount);
+ let type="expenses";
+ if(t.includes("salary")||t.includes("gehalt")) type="income";
+ if(t.includes("rent")||t.includes("miete")) type="fixed";
 
-  let type="expenses";
-
-  if(text.includes("salary") || text.includes("gehalt") || text.includes("salário") || text.includes("recebi")) type="income";
-  if(text.includes("rent") || text.includes("miete") || text.includes("aluguel")) type="fixed";
-
-  return {amount,type};
+ return {val:Number(val),type};
 }
 
 function add(){
-  let text = document.getElementById("input").value;
-  let res = parse(text);
+ let t=document.getElementById("input").value;
+ let r=parse(t);
 
-  data[res.type].push({text, val:res.amount});
+ data[r.type].push({val:r.val});
 
-  save();
-  render();
+ localStorage.setItem("data",JSON.stringify(data));
+ render();
 }
 
 function render(){
+ document.getElementById("income").innerText =
+   data.income.reduce((a,i)=>a+i.val,0);
 
-  let inc = data.income.reduce((a,i)=>a+i.val,0);
-  let fix = data.fixed.reduce((a,i)=>a+i.val,0);
-  let exp = data.expenses.reduce((a,i)=>a+i.val,0);
+ document.getElementById("fixed").innerText =
+   data.fixed.reduce((a,i)=>a+i.val,0);
 
-  document.getElementById("income").innerText = inc;
-  document.getElementById("fixed").innerText = fix;
-  document.getElementById("expenses").innerText = exp;
+ document.getElementById("expenses").innerText =
+   data.expenses.reduce((a,i)=>a+i.val,0);
 
-  document.getElementById("output").innerText = JSON.stringify(data,null,2);
-}
-
-function save(){
-  localStorage.setItem("data", JSON.stringify(data));
+ document.getElementById("output").innerText =
+   JSON.stringify(data,null,2);
 }
 
 render();
-
-if ("serviceWorker" in navigator) {
- navigator.serviceWorker.register("sw.js");
-}
 </script>
 
 </body>
