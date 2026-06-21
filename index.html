@@ -8,8 +8,8 @@
 <style>
 body {
   margin:0;
-  font-family:system-ui;
-  background:linear-gradient(135deg,#f5f0e6,#e8f0e6,#e5edf5);
+  font-family: system-ui;
+  background: linear-gradient(135deg,#f5f0e6,#e8f0e6,#e5edf5);
 }
 
 .container {
@@ -18,34 +18,64 @@ body {
   padding:20px;
 }
 
+h2 {
+  text-align:center;
+}
+
 .dashboard {
   display:flex;
-  gap:10px;
+  gap:15px;
   flex-wrap:wrap;
+  margin-bottom:20px;
 }
 
 .card {
   flex:1;
-  min-width:120px;
+  min-width:140px;
   background:white;
-  padding:15px;
-  border-radius:15px;
+  padding:20px;
+  border-radius:20px;
+  box-shadow:0 10px 25px rgba(0,0,0,0.08);
+  text-align:center;
+}
+
+.value {
+  font-size:26px;
+  font-weight:bold;
+  margin-top:10px;
+}
+
+.input-box {
+  background:white;
+  padding:20px;
+  border-radius:20px;
+  margin-bottom:20px;
 }
 
 textarea {
   width:100%;
-  padding:10px;
-  border-radius:10px;
+  height:90px;
+  padding:12px;
+  border-radius:12px;
+  border:1px solid #ccc;
+  font-size:16px;
 }
 
 button {
-  width:100%;
-  padding:10px;
   margin-top:10px;
+  width:100%;
+  padding:12px;
+  font-size:16px;
+  border:none;
+  border-radius:12px;
   background:#6b8e23;
   color:white;
-  border:none;
-  border-radius:10px;
+}
+
+.output {
+  background:white;
+  padding:15px;
+  border-radius:20px;
 }
 </style>
 </head>
@@ -54,64 +84,96 @@ button {
 
 <div class="container">
 
-<h2>📱 Finanz App</h2>
+<h2>📱 Finanz App (Live)</h2>
 
 <div class="dashboard">
-  <div class="card">Einnahmen<div id="income"></div></div>
-  <div class="card">Fixkosten<div id="fixed"></div></div>
-  <div class="card">Ausgaben<div id="expenses"></div></div>
+  <div class="card">
+    Einnahmen
+    <div id="income" class="value"></div>
+  </div>
+
+  <div class="card">
+    Fixkosten
+    <div id="fixed" class="value"></div>
+  </div>
+
+  <div class="card">
+    Ausgaben
+    <div id="expenses" class="value"></div>
+  </div>
 </div>
 
-<textarea id="input"></textarea>
-<button onclick="add()">Speichern</button>
+<div class="input-box">
+<textarea id="input" placeholder="z.B. Gehalt 3000 oder Netflix 15€"></textarea>
+<button onclick="add()">🤖 Analysieren</button>
+</div>
 
+<div class="output">
 <pre id="output"></pre>
+</div>
 
 </div>
 
 <script>
-let data = JSON.parse(localStorage.getItem("data")) || {
+
+let data = JSON.parse(localStorage.getItem('data')) || {
  income:[],
  fixed:[],
  expenses:[]
 };
 
-function parse(t){
- t=t.toLowerCase();
- let val=(t.match(/\d+/)||[0])[0];
+function parse(text){
+ text = text.toLowerCase();
+
+ let amount = (text.match(/\d+/) || [0])[0];
+ amount = Number(amount);
 
  let type="expenses";
- if(t.includes("salary")||t.includes("gehalt")) type="income";
- if(t.includes("rent")||t.includes("miete")) type="fixed";
 
- return {val:Number(val),type};
+ if(text.includes("gehalt") || text.includes("salary") || text.includes("salário") || text.includes("recebi"))
+   type="income";
+
+ if(text.includes("miete") || text.includes("rent") || text.includes("aluguel"))
+   type="fixed";
+
+ return {amount,type};
 }
 
 function add(){
- let t=document.getElementById("input").value;
- let r=parse(t);
+ let text = document.getElementById("input").value;
 
- data[r.type].push({val:r.val});
+ if(!text) return;
 
- localStorage.setItem("data",JSON.stringify(data));
+ let res = parse(text);
+
+ data[res.type].push({text, val:res.amount});
+
+ save();
  render();
+
+ document.getElementById("input").value = "";
 }
 
 function render(){
- document.getElementById("income").innerText =
-   data.income.reduce((a,i)=>a+i.val,0);
 
- document.getElementById("fixed").innerText =
-   data.fixed.reduce((a,i)=>a+i.val,0);
+ let inc = data.income.reduce((a,i)=>a+i.val,0);
+ let fix = data.fixed.reduce((a,i)=>a+i.val,0);
+ let exp = data.expenses.reduce((a,i)=>a+i.val,0);
 
- document.getElementById("expenses").innerText =
-   data.expenses.reduce((a,i)=>a+i.val,0);
+ document.getElementById("income").innerText = inc;
+ document.getElementById("fixed").innerText = fix;
+ document.getElementById("expenses").innerText = exp;
 
  document.getElementById("output").innerText =
    JSON.stringify(data,null,2);
 }
 
+function save(){
+ localStorage.setItem("data", JSON.stringify(data));
+}
+
 render();
+
 </script>
 
 </body>
