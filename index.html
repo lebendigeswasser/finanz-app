@@ -1,15 +1,15 @@
 <!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Finanz App</title>
 
-
-
-
-Finanz App
-
-
+<style>
 body {
   margin:0;
   font-family: system-ui;
-  background:linear-gradient(135deg,#f5f0e6,#e8f0e6,#e5edf5);
+  background: linear-gradient(135deg,#f5f0e6,#e8f0e6,#e5edf5);
 }
 
 .container {
@@ -20,198 +20,83 @@ body {
 
 h2 {
   text-align:center;
-  margin-bottom:20px;
 }
 
-/* DASHBOARD */
 .dashboard {
   display:flex;
-  gap:12px;
+  gap:10px;
   flex-wrap:wrap;
   margin-bottom:20px;
 }
 
 .card {
   flex:1;
-  min-width:140px;
+  min-width:150px;
   background:white;
   padding:20px;
   border-radius:20px;
-  box-shadow:0 10px 25px rgba(0,0,0,0.08);
   text-align:center;
-}
-
-.value {
-  font-size:26px;
-  font-weight:bold;
-  margin-top:8px;
-}
-
-.positive { color:green; }
-.negative { color:red; }
-
-/* INPUT */
-.input-box {
-  background:white;
-  padding:20px;
-  border-radius:20px;
-  margin-bottom:20px;
 }
 
 textarea {
   width:100%;
-  height:90px;
-  padding:12px;
-  border-radius:12px;
-  border:1px solid #ddd;
-  font-size:16px;
+  padding:10px;
+  border-radius:10px;
 }
 
 button {
   margin-top:10px;
   width:100%;
   padding:12px;
-  font-size:16px;
   border:none;
-  border-radius:12px;
+  border-radius:10px;
   background:#6b8e23;
   color:white;
 }
+</style>
+</head>
 
-/* LISTE */
-.list {
-  background:white;
-  border-radius:20px;
-  padding:15px;
-}
+<body>
 
-.item {
-  display:flex;
-  justify-content:space-between;
-  padding:8px 0;
-  border-bottom:1px solid #eee;
-}
+<div class="container">
 
-.badge {
-  padding:4px 8px;
-  border-radius:8px;
-  font-size:12px;
-}
+<h2>📱 Finanz App</h2>
 
-.food { background:#d0e8d0; }
-.abos { background:#e6d0f0; }
-.fixed { background:#f0d0d0; }
-.other { background:#eee; }
+<div class="dashboard">
+  <div class="card">Einnahmen <div id="income"></div></div>
+  <div class="card">Fixkosten <div id="fixed"></div></div>
+  <div class="card">Ausgaben <div id="expenses"></div></div>
+</div>
 
+<textarea id="input" placeholder="z.B. Gehalt 3000"></textarea>
+<button onclick="add()">Speichern</button>
 
+<pre id="output"></pre>
 
+</div>
 
-
-
-
-
-📱 Finanz App
-
-<!-- DASHBOARD -->
-
-  
-    Einnahmen
-    
-  
-
-  
-    Fixkosten
-    
-  
-
-  
-    Ausgaben
-    
-  
-
-  
-    Saldo
-    
-  
-
-
-<!-- INPUT -->
-
-
-🤖 Analysieren
-
-
-<!-- LISTE -->
-
-
-
-
-
-
-let data = JSON.parse(localStorage.getItem('data')) || {
-  income:[],
-  fixed:[],
-  expenses:[]
+<script>
+let data = JSON.parse(localStorage.getItem("data")) || {
+ income:[], fixed:[], expenses:[]
 };
 
-function parse(text){
-  text = text.toLowerCase();
-
-  let amount = (text.match(/\\d+/) || [0])[0];
-  amount = Number(amount);
-
-  let type="expenses";
-  let category="other";
-
-  if(text.includes("gehalt") || text.includes("salary") || text.includes("salário"))
-    type="income";
-
-  if(text.includes("miete") || text.includes("rent"))
-    type="fixed";
-
-  if(text.includes("lidl") || text.includes("markt"))
-    category="food";
-
-  if(text.includes("netflix") || text.includes("spotify"))
-    category="abos";
-
-  if(type==="fixed")
-    category="fixed";
-
-  return {amount,type,category};
-}
-
 function add(){
-  let text = document.getElementById("input").value;
+ let text = document.getElementById("input").value;
+ let val = (text.match(/\\d+/)||[0])[0];
 
-  if(!text) return;
+ data.expenses.push({text, val:Number(val)});
 
-  let res = parse(text);
+ localStorage.setItem("data",JSON.stringify(data));
 
-  let entry = {
-    text: text,
-    val: res.amount,
-    category: res.category
-  };
-
-  data[res.type].push(entry);
-
-  save();
-  render();
-
-  document.getElementById("input").value="";
+ render();
 }
 
 function render(){
+ document.getElementById("output").innerText = JSON.stringify(data,null,2);
+}
 
-  let inc = data.income.reduce((a,i)=>a+i.val,0);
-  let fix = data.fixed.reduce((a,i)=>a+i.val,0);
-  let exp = data.expenses.reduce((a,i)=>a+i.val,0);
-  let saldo = inc - fix - exp;
+render();
+</script>
 
-  document.getElementById("income").innerText = inc;
-  document.getElementById("fixed").innerText = fix;
-  document.getElementById("expenses").innerText = exp;
-  document.getElementById("saldo").innerText = saldo;
-
-  document.getElementById("saldo").
+</body>
+</html>
